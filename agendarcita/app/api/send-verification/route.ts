@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://agendarcita.site';
 export async function POST(request: Request) {
   const { nombre, cedula, email } = await request.json();
 
-  const verifyLink = `${BASE_URL}/paciente/${cedula}`;
+  const verifyLink = `${BASE_URL}/paciente/${cedula}?verified=true`;
 
   const { error } = await resend.emails.send({
     from: 'Hospital Domingo Luciani <onboarding@resend.dev>',

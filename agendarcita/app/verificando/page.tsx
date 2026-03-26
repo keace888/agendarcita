@@ -35,17 +35,9 @@ export default async function VerificandoPage({
             continuar con el agendamiento de tu cita.
           </p>
 
-          {/* POC simulation */}
-          <div className="border border-dashed border-gray-200 rounded-xl p-4">
-            <p className="text-xs text-gray-300 mb-3">— Demo: simular clic en enlace del correo —</p>
-            <Link
-              href={`/paciente/${cedula ?? ''}`}
-              className="inline-block text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-opacity hover:opacity-90"
-              style={{ backgroundColor: '#1B4F8A' }}
-            >
-              Verificar Identidad →
-            </Link>
-          </div>
+          <p className="text-xs text-gray-300">
+            El enlace del correo te redirigirá automáticamente para continuar.
+          </p>
         </div>
       </main>
     </div>

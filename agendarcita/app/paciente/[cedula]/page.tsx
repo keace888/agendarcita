@@ -1,13 +1,21 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import Header from '../../components/Header';
 import { findPatient } from '@/data/patients';
 
 export default async function PacientePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ cedula: string }>;
+  searchParams: Promise<{ verified?: string }>;
 }) {
   const { cedula } = await params;
+  const { verified } = await searchParams;
+
+  if (verified !== 'true') {
+    redirect('/');
+  }
   const patient = findPatient(cedula);
   const displayName = patient ? `${patient.nombre} ${patient.apellido}` : 'Paciente Nuevo';
   const initial = patient ? patient.nombre[0] : '?';
