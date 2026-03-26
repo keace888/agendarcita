@@ -14,10 +14,19 @@ export default function HomePage() {
 
   const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && email.trim();
 
-  function handleContinuar() {
+  async function handleContinuar() {
     if (!canSubmit) return;
     setLoading(true);
     const normalized = cedula.replace(/\D/g, '');
+    try {
+      await fetch('/api/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, cedula: normalized, email }),
+      });
+    } catch (_) {
+      // continue even if email fails in demo
+    }
     router.push(`/verificando?cedula=${normalized}&email=${encodeURIComponent(email)}`);
   }
 

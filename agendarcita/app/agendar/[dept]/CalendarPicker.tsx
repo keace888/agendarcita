@@ -55,8 +55,17 @@ export default function CalendarPicker({
   const [selected, setSelected] = useState<string | null>(null);
   const days = getSlots();
 
-  function confirm() {
+  async function confirm() {
     if (!selected) return;
+    try {
+      await fetch('/api/send-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cedula, dept, slot: selected }),
+      });
+    } catch (_) {
+      // continue even if email fails in demo
+    }
     router.push(
       `/confirmado?dept=${encodeURIComponent(dept)}&cedula=${cedula}&slot=${encodeURIComponent(selected)}`
     );
