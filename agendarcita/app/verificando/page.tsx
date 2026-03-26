@@ -35,9 +35,15 @@ export default async function VerificandoPage({
             continuar con el agendamiento de tu cita.
           </p>
 
-          <p className="text-xs text-gray-300">
-            El enlace del correo te redirigirá automáticamente para continuar.
-          </p>
+          {cedula && (
+            <Link
+              href={`/paciente/${cedula}`}
+              className="inline-block w-full text-white font-semibold py-3 rounded-xl text-sm transition-opacity hover:opacity-90"
+              style={{ backgroundColor: '#1B4F8A' }}
+            >
+              Ya verifiqué mi correo →
+            </Link>
+          )}
         </div>
       </main>
     </div>
