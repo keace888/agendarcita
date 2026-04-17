@@ -113,7 +113,6 @@ export default function HomePage() {
                 <option value="">—</option>
                 <option value="M">Masculino</option>
                 <option value="F">Femenino</option>
-                <option value="O">Otro</option>
               </select>
             </div>
 
