@@ -30,7 +30,7 @@ function DeptPicker() {
             <button
               key={d.slug}
               type="button"
-              onClick={() => router.push(`/agendar/${d.slug}?${query}`)}
+              onClick={() => router.push(`/agendar/${d.slug}/calendario?${query}`)}
               className="w-full bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all text-left flex items-center gap-4 group"
               style={{ border: '2px solid #e5e7eb' }}
             >
