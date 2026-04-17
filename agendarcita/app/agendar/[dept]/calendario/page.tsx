@@ -11,18 +11,21 @@ export default async function CalendarioPage({
   const { dept } = await params;
   const sp = await searchParams;
 
-  const deptLabel =
-    dept === 'oftalmologia'
-      ? 'Oftalmología'
-      : dept === 'traumatologia'
-      ? 'Traumatología'
-      : 'Oncología';
+  const LABELS: Record<string, string> = {
+    oftalmologia: 'Oftalmología',
+    traumatologia: 'Traumatología',
+    oncologia: 'Oncología',
+    estetica: 'Medicina Estética',
+  };
 
   const icons: Record<string, string> = {
     oftalmologia: '👁️',
     traumatologia: '🦴',
     oncologia: '🩺',
+    estetica: '✨',
   };
+
+  const deptLabel = LABELS[dept] ?? dept;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8FAFC' }}>
