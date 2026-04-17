@@ -5,9 +5,10 @@ import { Suspense } from 'react';
 import Header from '../components/Header';
 
 const DEPARTMENTS = [
-  { slug: 'oftalmologia', label: 'Oftalmología', icon: '👁️', desc: 'Salud visual y ocular' },
-  { slug: 'traumatologia', label: 'Traumatología', icon: '🦴', desc: 'Lesiones músculo-esqueléticas' },
-  { slug: 'oncologia', label: 'Oncología', icon: '🩺', desc: 'Diagnóstico y tratamiento oncológico' },
+  { slug: 'oftalmologia', label: 'Oftalmología', icon: '👁️', desc: 'Salud visual y ocular', intake: false },
+  { slug: 'traumatologia', label: 'Traumatología', icon: '🦴', desc: 'Lesiones músculo-esqueléticas', intake: false },
+  { slug: 'oncologia', label: 'Oncología', icon: '🩺', desc: 'Diagnóstico y tratamiento oncológico', intake: false },
+  { slug: 'estetica', label: 'Medicina Estética', icon: '✨', desc: 'Tratamientos estéticos y rejuvenecimiento', intake: true },
 ];
 
 function DeptPicker() {
@@ -30,7 +31,7 @@ function DeptPicker() {
             <button
               key={d.slug}
               type="button"
-              onClick={() => router.push(`/agendar/${d.slug}/calendario?${query}`)}
+              onClick={() => router.push(d.intake ? `/agendar/${d.slug}?${query}` : `/agendar/${d.slug}/calendario?${query}`)}
               className="w-full bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all text-left flex items-center gap-4 group"
               style={{ border: '2px solid #e5e7eb' }}
             >

@@ -8,12 +8,14 @@ const DEPT_LABELS: Record<string, string> = {
   oftalmologia: 'Oftalmología',
   traumatologia: 'Traumatología',
   oncologia: 'Oncología',
+  estetica: 'Medicina Estética',
 };
 
 const DEPT_ICONS: Record<string, string> = {
   oftalmologia: '👁️',
   traumatologia: '🦴',
   oncologia: '🩺',
+  estetica: '✨',
 };
 
 export async function POST(request: Request) {

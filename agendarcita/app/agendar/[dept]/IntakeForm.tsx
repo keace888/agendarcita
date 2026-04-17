@@ -31,6 +31,13 @@ const DEPT_CONFIG: Record<string, Field[]> = {
     { key: 'imagenologia', label: 'Imagenología', type: 'text' },
     { key: 'estudios_solicitados', label: 'Estudios solicitados', type: 'textarea' },
   ],
+  estetica: [
+    { key: 'motivo_consulta', label: 'Motivo de la consulta estética', type: 'textarea' },
+    { key: 'area_tratamiento', label: 'Área(s) de interés', type: 'text' },
+    { key: 'tratamientos_previos', label: 'Tratamientos estéticos previos', type: 'textarea' },
+    { key: 'alergias_conocidas', label: 'Alergias conocidas', type: 'text' },
+    { key: 'medicamentos_actuales', label: 'Medicamentos actuales', type: 'text' },
+  ],
   oncologia: [
     {
       key: 'ecog',
@@ -81,7 +88,11 @@ export default function IntakeForm({
       ? 'Oftalmología'
       : dept === 'traumatologia'
       ? 'Traumatología'
-      : 'Oncología';
+      : dept === 'oncologia'
+      ? 'Oncología'
+      : dept === 'estetica'
+      ? 'Medicina Estética'
+      : dept;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8FAFC' }}>
