@@ -96,7 +96,6 @@ export default function CalendarPicker({
   async function confirm() {
     if (!selected || loading) return;
     setLoading(true);
-    setSlotTaken(false);
 
     const clinicalData = JSON.parse(sessionStorage.getItem(`intake_${dept}`) ?? '{}');
 
