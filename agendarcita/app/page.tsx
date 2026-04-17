@@ -10,24 +10,24 @@ export default function HomePage() {
   const [apellido, setApellido] = useState('');
   const [cedula, setCedula] = useState('');
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [nacimiento, setNacimiento] = useState('');
+  const [sexo, setSexo] = useState('');
 
-  const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && email.trim();
+  const canSubmit =
+    nombre.trim() && apellido.trim() && cedula.trim() && email.trim() && nacimiento && sexo;
 
-  async function handleContinuar() {
+  function handleContinuar() {
     if (!canSubmit) return;
-    setLoading(true);
     const normalized = cedula.replace(/\D/g, '');
-    try {
-      await fetch('/api/send-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, cedula: normalized, email }),
-      });
-    } catch (_) {
-      // continue even if email fails in demo
-    }
-    router.push(`/verificando?cedula=${normalized}&email=${encodeURIComponent(email)}`);
+    const params = new URLSearchParams({
+      cedula: normalized,
+      nombre,
+      apellido,
+      email,
+      nacimiento,
+      sexo,
+    });
+    router.push(`/agendar?${params.toString()}`);
   }
 
   return (
@@ -97,14 +97,43 @@ export default function HomePage() {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                  Fecha de Nacimiento
+                </label>
+                <input
+                  type="date"
+                  value={nacimiento}
+                  onChange={(e) => setNacimiento(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:border-transparent transition"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                  Sexo
+                </label>
+                <select
+                  value={sexo}
+                  onChange={(e) => setSexo(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:border-transparent transition"
+                >
+                  <option value="">—</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Femenino</option>
+                  <option value="O">Otro</option>
+                </select>
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={handleContinuar}
-              disabled={!canSubmit || loading}
+              disabled={!canSubmit}
               className="w-full text-white font-semibold py-3 rounded-xl mt-2 transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-sm tracking-wide"
               style={{ backgroundColor: '#1B4F8A' }}
             >
-              {loading ? 'Procesando...' : 'Continuar →'}
+              Continuar →
             </button>
           </div>
         </div>
