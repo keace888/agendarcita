@@ -4,31 +4,45 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from './components/Header';
 
+const MESES = [
+  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre',
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: CURRENT_YEAR - 1919 }, (_, i) => CURRENT_YEAR - i);
+
+function daysInMonth(month: number, year: number) {
+  if (!month || !year) return 31;
+  return new Date(year, month, 0).getDate();
+}
+
+const selectClass =
+  'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:border-transparent transition';
+
 export default function HomePage() {
   const router = useRouter();
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [cedula, setCedula] = useState('');
   const [email, setEmail] = useState('');
-  const [nacimiento, setNacimiento] = useState('');
+  const [dia, setDia] = useState('');
+  const [mes, setMes] = useState('');
+  const [anio, setAnio] = useState('');
   const [sexo, setSexo] = useState('');
 
-  const canSubmit =
-    nombre.trim() && apellido.trim() && cedula.trim() && email.trim() && nacimiento && sexo;
+  const nacimiento = dia && mes && anio ? `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}` : '';
+  const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && email.trim() && nacimiento && sexo;
 
   function handleContinuar() {
     if (!canSubmit) return;
     const normalized = cedula.replace(/\D/g, '');
-    const params = new URLSearchParams({
-      cedula: normalized,
-      nombre,
-      apellido,
-      email,
-      nacimiento,
-      sexo,
-    });
+    const params = new URLSearchParams({ cedula: normalized, nombre, apellido, email, nacimiento, sexo });
     router.push(`/agendar?${params.toString()}`);
   }
+
+  const maxDays = daysInMonth(Number(mes), Number(anio));
+  const days = Array.from({ length: maxDays }, (_, i) => i + 1);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8FAFC' }}>
@@ -46,84 +60,61 @@ export default function HomePage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="José"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                />
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Nombre</label>
+                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="José"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                  Apellido
-                </label>
-                <input
-                  type="text"
-                  value={apellido}
-                  onChange={(e) => setApellido(e.target.value)}
-                  placeholder="Contreras"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                />
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Apellido</label>
+                <input type="text" value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Contreras"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                Número de Cédula
-              </label>
-              <input
-                type="text"
-                value={cedula}
-                onChange={(e) => setCedula(e.target.value)}
-                placeholder="30.496.453"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition"
-              />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Número de Cédula</label>
+              <input type="text" value={cedula} onChange={(e) => setCedula(e.target.value)} placeholder="30.496.453"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                Correo Electrónico
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="correo@email.com"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition"
-              />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Correo Electrónico</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="correo@email.com"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                  Fecha de Nacimiento
-                </label>
-                <input
-                  type="date"
-                  value={nacimiento}
-                  onChange={(e) => setNacimiento(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                  Sexo
-                </label>
-                <select
-                  value={sexo}
-                  onChange={(e) => setSexo(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                >
-                  <option value="">—</option>
-                  <option value="M">Masculino</option>
-                  <option value="F">Femenino</option>
-                  <option value="O">Otro</option>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Fecha de Nacimiento</label>
+              <div className="grid grid-cols-3 gap-2">
+                <select value={dia} onChange={(e) => setDia(e.target.value)} className={selectClass}>
+                  <option value="">Día</option>
+                  {days.map((d) => (
+                    <option key={d} value={String(d)}>{d}</option>
+                  ))}
+                </select>
+                <select value={mes} onChange={(e) => setMes(e.target.value)} className={selectClass}>
+                  <option value="">Mes</option>
+                  {MESES.map((m, i) => (
+                    <option key={m} value={String(i + 1)}>{m}</option>
+                  ))}
+                </select>
+                <select value={anio} onChange={(e) => setAnio(e.target.value)} className={selectClass}>
+                  <option value="">Año</option>
+                  {YEARS.map((y) => (
+                    <option key={y} value={String(y)}>{y}</option>
+                  ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Sexo</label>
+              <select value={sexo} onChange={(e) => setSexo(e.target.value)} className={selectClass}>
+                <option value="">—</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+                <option value="O">Otro</option>
+              </select>
             </div>
 
             <button
