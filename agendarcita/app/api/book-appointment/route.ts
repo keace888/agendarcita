@@ -24,25 +24,26 @@ export async function POST(request: Request) {
   if (process.env.DATABASE_URL) {
     try {
       const upsert = await pool.query(
-        `INSERT INTO agendarcita.patients (patient_id, cedula, nombre, apellido, email, birthdate, sex)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6)
+        `INSERT INTO agendarcita.patients (nombre, apellido, cedula, email, fecha_nacimiento, sexo)
+         VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (cedula) DO UPDATE SET
            nombre = EXCLUDED.nombre,
            apellido = EXCLUDED.apellido,
            email = EXCLUDED.email,
-           birthdate = EXCLUDED.birthdate,
-           sex = EXCLUDED.sex
-         RETURNING patient_id`,
-        [cedula, nombre, apellido, email, nacimiento || null, sexo || null]
+           fecha_nacimiento = EXCLUDED.fecha_nacimiento,
+           sexo = EXCLUDED.sexo,
+           updated_at = now()
+         RETURNING id`,
+        [nombre, apellido, cedula, email, nacimiento || null, sexo || null]
       );
 
-      const patientId = upsert.rows[0].patient_id;
+      const patientId = upsert.rows[0].id;
 
       await pool.query(
         `INSERT INTO agendarcita.appointments
-           (appointment_id, patient_id, department, doctor, scheduled_time, status, clinical_data)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, 'pending', $5)`,
-        [patientId, dept, doctor, scheduledTime, JSON.stringify(clinicalData)]
+           (patient_id, department, doctor_name, scheduled_at, status)
+         VALUES ($1, $2, $3, $4, 'scheduled')`,
+        [patientId, dept, doctor, scheduledTime]
       );
     } catch (err) {
       console.error('DB write failed:', err);
