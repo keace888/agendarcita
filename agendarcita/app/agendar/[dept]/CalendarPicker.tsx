@@ -41,15 +41,19 @@ function getSlots(): { date: string; day: string; slots: Slot[] }[] {
     const dateNum = d.getDate();
 
     const slots: Slot[] = TIMES.map((t, i) => {
-      const slotDate = new Date(d);
-      slotDate.setHours(t.hour, 0, 0, 0);
+      // Build timestamp in Venezuela time (UTC-4) regardless of client timezone
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const hh = String(t.hour).padStart(2, '0');
+      const isoDate = new Date(`${yyyy}-${mm}-${dd}T${hh}:00:00-04:00`).toISOString();
       return {
         dateLabel,
         dayLabel,
         time: t.label,
         available: (dateNum + i * 3) % 4 !== 0,
         key: `${dateNum}-${t.label}`,
-        isoDate: slotDate.toISOString(),
+        isoDate,
       };
     });
 
@@ -85,25 +89,22 @@ export default function CalendarPicker({
   const router = useRouter();
   const [selected, setSelected] = useState<Slot | null>(null);
   const [loading, setLoading] = useState(false);
+  const [slotTaken, setSlotTaken] = useState(false);
   const days = getSlots();
 
   async function confirm() {
     if (!selected || loading) return;
     setLoading(true);
+    setSlotTaken(false);
 
     const clinicalData = JSON.parse(sessionStorage.getItem(`intake_${dept}`) ?? '{}');
 
     try {
-      await fetch('/api/book-appointment', {
+      const res = await fetch('/api/book-appointment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cedula,
-          nombre,
-          apellido,
-          email,
-          nacimiento,
-          sexo,
+          cedula, nombre, apellido, email, nacimiento, sexo,
           dept,
           doctor: DOCTORS[dept] ?? 'Médico asignado',
           scheduledTime: selected.isoDate,
@@ -111,8 +112,15 @@ export default function CalendarPicker({
           clinicalData,
         }),
       });
+
+      if (res.status === 409) {
+        setSlotTaken(true);
+        setSelected(null);
+        setLoading(false);
+        return;
+      }
     } catch (_) {
-      // continue even if API fails in demo
+      // continue even if network fails in demo
     }
 
     router.push(
@@ -122,6 +130,11 @@ export default function CalendarPicker({
 
   return (
     <div>
+      {slotTaken && (
+        <div className="mb-4 rounded-xl px-4 py-3 text-sm font-medium text-red-700" style={{ backgroundColor: '#fee2e2', border: '1px solid #fca5a5' }}>
+          ⚠️ Este horario ya está ocupado. Por favor selecciona otro.
+        </div>
+      )}
       <div className="space-y-4">
         {days.map((day) => (
           <div key={day.date} className="bg-white rounded-2xl shadow-sm p-5">

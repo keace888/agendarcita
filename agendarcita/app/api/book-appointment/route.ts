@@ -23,6 +23,17 @@ export async function POST(request: Request) {
   // Write to DB if DATABASE_URL is configured
   if (process.env.DATABASE_URL) {
     try {
+      const duplicate = await pool.query(
+        `SELECT id FROM agendarcita.appointments
+         WHERE department = $1 AND scheduled_at = $2 AND status != 'cancelled'
+         LIMIT 1`,
+        [dept, scheduledTime]
+      );
+
+      if (duplicate.rows.length > 0) {
+        return NextResponse.json({ error: 'slot_taken' }, { status: 409 });
+      }
+
       const upsert = await pool.query(
         `INSERT INTO agendarcita.patients (nombre, apellido, cedula, email, fecha_nacimiento, sexo)
          VALUES ($1, $2, $3, $4, $5, $6)
