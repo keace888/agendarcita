@@ -89,7 +89,7 @@ export default function CalendarPicker({
   const router = useRouter();
   const [selected, setSelected] = useState<Slot | null>(null);
   const [loading, setLoading] = useState(false);
-  const [slotTaken, setSlotTaken] = useState(false);
+  const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const days = getSlots();
 
   async function confirm() {
@@ -114,7 +114,7 @@ export default function CalendarPicker({
       });
 
       if (res.status === 409) {
-        setSlotTaken(true);
+        setTakenSlots((prev) => new Set(prev).add(selected.key));
         setSelected(null);
         setLoading(false);
         return;
@@ -130,11 +130,6 @@ export default function CalendarPicker({
 
   return (
     <div>
-      {slotTaken && (
-        <div className="mb-4 rounded-xl px-4 py-3 text-sm font-medium text-red-700" style={{ backgroundColor: '#fee2e2', border: '1px solid #fca5a5' }}>
-          ⚠️ Este horario ya está ocupado. Por favor selecciona otro.
-        </div>
-      )}
       <div className="space-y-4">
         {days.map((day) => (
           <div key={day.date} className="bg-white rounded-2xl shadow-sm p-5">
@@ -144,25 +139,18 @@ export default function CalendarPicker({
             <div className="flex flex-wrap gap-2">
               {day.slots.map((slot) => {
                 const isSelected = selected?.key === slot.key;
+                const blocked = !slot.available || takenSlots.has(slot.key);
                 return (
                   <button
                     key={slot.key}
                     type="button"
-                    disabled={!slot.available}
+                    disabled={blocked}
                     onClick={() => setSelected(slot)}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
                     style={{
-                      backgroundColor: !slot.available
-                        ? '#f3f4f6'
-                        : isSelected
-                        ? '#1B4F8A'
-                        : '#e8f0fb',
-                      color: !slot.available
-                        ? '#d1d5db'
-                        : isSelected
-                        ? '#ffffff'
-                        : '#1B4F8A',
-                      cursor: !slot.available ? 'not-allowed' : 'pointer',
+                      backgroundColor: blocked ? '#f3f4f6' : isSelected ? '#1B4F8A' : '#e8f0fb',
+                      color: blocked ? '#d1d5db' : isSelected ? '#ffffff' : '#1B4F8A',
+                      cursor: blocked ? 'not-allowed' : 'pointer',
                       border: isSelected ? '2px solid #1B4F8A' : '2px solid transparent',
                     }}
                   >
