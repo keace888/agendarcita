@@ -54,9 +54,12 @@ export async function POST(request: Request) {
 
       await pool.query(
         `INSERT INTO agendarcita.appointments
-           (patient_id, department, doctor_name, scheduled_at, status)
-         VALUES ($1, $2, $3, $4, 'scheduled')`,
-        [patientId, dept, doctor, scheduledTime]
+           (patient_id, department, doctor_name, scheduled_at, status, clinical_notes)
+         VALUES ($1, $2, $3, $4, 'scheduled', $5)`,
+        [patientId, dept, doctor, scheduledTime,
+         clinicalData && Object.keys(clinicalData).length > 0
+           ? JSON.stringify(clinicalData)
+           : null]
       );
     } catch (err) {
       console.error('DB write failed:', err);
