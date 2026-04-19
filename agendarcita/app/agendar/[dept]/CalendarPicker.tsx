@@ -124,9 +124,13 @@ export default function CalendarPicker({
       // continue even if network fails in demo
     }
 
+    try {
     router.push(
       `/confirmado?dept=${encodeURIComponent(dept)}&nombre=${encodeURIComponent(nombre)}&slot=${encodeURIComponent(selected.key)}`
     );
+    } catch (_) {
+      setLoading(false);
+    }
   }
 
   return (

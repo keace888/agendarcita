@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { randomUUID } from 'crypto';
 import pool from '@/lib/db';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
       const patientId = upsert.rows[0].id;
 
-      const qrToken = crypto.randomUUID();
+      const qrToken = randomUUID();
 
       await pool.query(
         `INSERT INTO agendarcita.appointments

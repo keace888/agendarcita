@@ -5,12 +5,16 @@ const DEPT_LABELS: Record<string, string> = {
   oftalmologia: 'Oftalmología',
   traumatologia: 'Traumatología',
   oncologia: 'Oncología',
+  estetica: 'Medicina Estética',
+  medicina_general: 'Medicina General',
 };
 
 const DEPT_ICONS: Record<string, string> = {
   oftalmologia: '👁️',
   traumatologia: '🦴',
   oncologia: '🩺',
+  estetica: '✨',
+  medicina_general: '⚕️',
 };
 
 export default async function ConfirmadoPage({
