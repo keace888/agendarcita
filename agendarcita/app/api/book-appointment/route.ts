@@ -55,18 +55,28 @@ export async function POST(request: Request) {
 
       const patientId = upsert.rows[0].id;
 
-      const qrToken = randomUUID();
+      const clinicalNotes = clinicalData && Object.keys(clinicalData).length > 0
+        ? JSON.stringify(clinicalData)
+        : null;
 
-      await pool.query(
+      const appt = await pool.query(
         `INSERT INTO agendarcita.appointments
-           (patient_id, department, doctor_name, scheduled_at, status, clinical_notes, qr_token)
-         VALUES ($1, $2, $3, $4, 'scheduled', $5, $6)`,
-        [patientId, dept, doctor, scheduledTime,
-         clinicalData && Object.keys(clinicalData).length > 0
-           ? JSON.stringify(clinicalData)
-           : null,
-         qrToken]
+           (patient_id, department, doctor_name, scheduled_at, status, clinical_notes)
+         VALUES ($1, $2, $3, $4, 'scheduled', $5)
+         RETURNING id`,
+        [patientId, dept, doctor, scheduledTime, clinicalNotes]
       );
+
+      // Attach qr_token if column exists (EHR migration may not be applied yet)
+      try {
+        const qrToken = randomUUID();
+        await pool.query(
+          `UPDATE agendarcita.appointments SET qr_token = $1 WHERE id = $2`,
+          [qrToken, appt.rows[0].id]
+        );
+      } catch (_) {
+        // qr_token column not yet migrated — appointment already saved above
+      }
     } catch (err) {
       console.error('DB write failed:', err);
       // continue to send email even if DB fails in demo
