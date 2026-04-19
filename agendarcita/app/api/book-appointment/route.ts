@@ -77,9 +77,11 @@ export async function POST(request: Request) {
       } catch (_) {
         // qr_token column not yet migrated — appointment already saved above
       }
-    } catch (err) {
-      console.error('DB write failed:', err);
-      // continue to send email even if DB fails in demo
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('DB write failed:', msg);
+      // Return the actual DB error so we can diagnose it
+      return NextResponse.json({ error: 'db_failed', detail: msg }, { status: 500 });
     }
   }
 

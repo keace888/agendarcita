@@ -92,6 +92,7 @@ export default function CalendarPicker({
   const [selected, setSelected] = useState<Slot | null>(null);
   const [loading, setLoading] = useState(false);
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
+  const [dbError, setDbError] = useState<string | null>(null);
   const days = getSlots();
 
   async function confirm() {
@@ -120,8 +121,16 @@ export default function CalendarPicker({
         setLoading(false);
         return;
       }
-    } catch (_) {
-      // continue even if network fails in demo
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setDbError(body.detail ?? `Error ${res.status}`);
+        setLoading(false);
+        return;
+      }
+    } catch (e) {
+      setDbError(e instanceof Error ? e.message : 'Error de red');
+      setLoading(false);
+      return;
     }
 
     try {
@@ -167,6 +176,13 @@ export default function CalendarPicker({
           </div>
         ))}
       </div>
+
+      {dbError && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
+          <p className="text-xs font-semibold text-red-600 mb-1">Error al guardar cita:</p>
+          <p className="text-xs text-red-500 font-mono break-all">{dbError}</p>
+        </div>
+      )}
 
       {selected && (
         <div className="mt-6 bg-white rounded-2xl shadow-md p-5">
