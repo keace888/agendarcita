@@ -54,14 +54,17 @@ export async function POST(request: Request) {
 
       const patientId = upsert.rows[0].id;
 
+      const qrToken = crypto.randomUUID();
+
       await pool.query(
         `INSERT INTO agendarcita.appointments
-           (patient_id, department, doctor_name, scheduled_at, status, clinical_notes)
-         VALUES ($1, $2, $3, $4, 'scheduled', $5)`,
+           (patient_id, department, doctor_name, scheduled_at, status, clinical_notes, qr_token)
+         VALUES ($1, $2, $3, $4, 'scheduled', $5, $6)`,
         [patientId, dept, doctor, scheduledTime,
          clinicalData && Object.keys(clinicalData).length > 0
            ? JSON.stringify(clinicalData)
-           : null]
+           : null,
+         qrToken]
       );
     } catch (err) {
       console.error('DB write failed:', err);
