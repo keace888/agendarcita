@@ -16,6 +16,7 @@ export default async function CalendarioPage({
     traumatologia: 'Traumatología',
     oncologia: 'Oncología',
     estetica: 'Medicina Estética',
+    medicina_general: 'Medicina General',
   };
 
   const icons: Record<string, string> = {
@@ -23,6 +24,7 @@ export default async function CalendarioPage({
     traumatologia: '🦴',
     oncologia: '🩺',
     estetica: '✨',
+    medicina_general: '⚕️',
   };
 
   const deptLabel = LABELS[dept] ?? dept;

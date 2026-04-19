@@ -9,6 +9,7 @@ const DEPARTMENTS = [
   { slug: 'traumatologia', label: 'Traumatología', icon: '🦴', desc: 'Lesiones músculo-esqueléticas', intake: false },
   { slug: 'oncologia', label: 'Oncología', icon: '🩺', desc: 'Diagnóstico y tratamiento oncológico', intake: false },
   { slug: 'estetica', label: 'Medicina Estética', icon: '✨', desc: 'Tratamientos estéticos y rejuvenecimiento', intake: true },
+  { slug: 'medicina_general', label: 'Medicina General', icon: '⚕️', desc: 'Consulta médica general', intake: true },
 ];
 
 function DeptPicker() {

@@ -9,6 +9,7 @@ const DEPT_LABELS: Record<string, string> = {
   traumatologia: 'Traumatología',
   oncologia: 'Oncología',
   estetica: 'Medicina Estética',
+  medicina_general: 'Medicina General',
 };
 
 const DEPT_ICONS: Record<string, string> = {
@@ -16,6 +17,7 @@ const DEPT_ICONS: Record<string, string> = {
   traumatologia: '🦴',
   oncologia: '🩺',
   estetica: '✨',
+  medicina_general: '⚕️',
 };
 
 export async function POST(request: Request) {
@@ -40,12 +42,12 @@ export async function POST(request: Request) {
         `INSERT INTO agendarcita.patients (nombre, apellido, cedula, email, fecha_nacimiento, sexo)
          VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (cedula) DO UPDATE SET
-           nombre = EXCLUDED.nombre,
-           apellido = EXCLUDED.apellido,
-           email = EXCLUDED.email,
-           fecha_nacimiento = EXCLUDED.fecha_nacimiento,
-           sexo = EXCLUDED.sexo,
-           updated_at = now()
+           nombre           = EXCLUDED.nombre,
+           apellido         = EXCLUDED.apellido,
+           email            = COALESCE(EXCLUDED.email, agendarcita.patients.email),
+           fecha_nacimiento = COALESCE(agendarcita.patients.fecha_nacimiento, EXCLUDED.fecha_nacimiento),
+           sexo             = EXCLUDED.sexo,
+           updated_at       = now()
          RETURNING id`,
         [nombre, apellido, cedula, email, nacimiento || null, sexo || null]
       );

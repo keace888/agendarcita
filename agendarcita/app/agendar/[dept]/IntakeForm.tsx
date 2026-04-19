@@ -31,6 +31,12 @@ const DEPT_CONFIG: Record<string, Field[]> = {
     { key: 'imagenologia', label: 'Imagenología', type: 'text' },
     { key: 'estudios_solicitados', label: 'Estudios solicitados', type: 'textarea' },
   ],
+  medicina_general: [
+    { key: 'motivo_consulta', label: 'Motivo de consulta', type: 'textarea' },
+    { key: 'duracion_sintomas', label: 'Duración de los síntomas', type: 'text' },
+    { key: 'medicamentos_actuales', label: 'Medicamentos que toma actualmente', type: 'textarea' },
+    { key: 'alergias_conocidas', label: 'Alergias conocidas', type: 'text' },
+  ],
   estetica: [
     { key: 'motivo_consulta', label: 'Motivo de la consulta estética', type: 'textarea' },
     { key: 'area_tratamiento', label: 'Área(s) de interés', type: 'text' },
@@ -92,6 +98,8 @@ export default function IntakeForm({
       ? 'Oncología'
       : dept === 'estetica'
       ? 'Medicina Estética'
+      : dept === 'medicina_general'
+      ? 'Medicina General'
       : dept;
 
   return (

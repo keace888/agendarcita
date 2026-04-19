@@ -68,6 +68,7 @@ const DOCTORS: Record<string, string> = {
   traumatologia: 'Dr. Carlos Medina',
   oncologia: 'Dra. María Torres',
   estetica: 'Dr. Carlos Vargas',
+  medicina_general: 'Dr. Médico de Guardia',
 };
 
 export default function CalendarPicker({
