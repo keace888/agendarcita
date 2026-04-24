@@ -41,17 +41,17 @@ export async function POST(request: Request) {
       }
 
       const upsert = await pool.query(
-        `INSERT INTO agendarcita.patients (nombre, apellido, cedula, email, fecha_nacimiento, sexo)
+        `INSERT INTO agendarcita.patients (nombre, apellido, cedula, telefono, fecha_nacimiento, sexo)
          VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (cedula) DO UPDATE SET
            nombre           = EXCLUDED.nombre,
            apellido         = EXCLUDED.apellido,
-           email            = COALESCE(EXCLUDED.email, agendarcita.patients.email),
+           telefono         = COALESCE(EXCLUDED.telefono, agendarcita.patients.telefono),
            fecha_nacimiento = COALESCE(agendarcita.patients.fecha_nacimiento, EXCLUDED.fecha_nacimiento),
            sexo             = EXCLUDED.sexo,
            updated_at       = now()
          RETURNING id`,
-        [nombre, apellido, cedula, email, nacimiento || null, sexo || null]
+        [nombre, apellido, cedula, email || null, nacimiento || null, sexo || null]
       );
 
       const patientId = upsert.rows[0].id;
