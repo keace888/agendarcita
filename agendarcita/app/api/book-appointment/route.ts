@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { randomUUID } from 'crypto';
+import twilio from 'twilio';
 import pool from '@/lib/db';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -89,53 +90,27 @@ export async function POST(request: Request) {
   const displayName = `${nombre} ${apellido}`;
   const slotDisplay = slot.replace('-', ' · ');
 
-  // Send WhatsApp confirmation via ManyChat
-  if (process.env.MANYCHAT_API_KEY) {
+  // Send WhatsApp confirmation via Twilio
+  if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_WHATSAPP_FROM) {
     try {
-      const waPhone = email as string; // already includes country code (e.g. +14121234567)
-      console.log('[ManyChat] looking up phone:', waPhone);
+      const waPhone = `whatsapp:${email}`; // email field holds full phone e.g. +14121234567
+      const confirmMsg =
+        `✅ *Cita Confirmada*\n\n` +
+        `Hola ${nombre}, tu cita ha sido agendada exitosamente.\n\n` +
+        `📋 *Detalles:*\n` +
+        `• Departamento: ${deptLabel}\n` +
+        `• Médico: ${doctor}\n` +
+        `• Horario: ${slotDisplay}\n\n` +
+        `⏰ Por favor preséntate *15 minutos antes* con tu cédula de identidad.`;
 
-      const subRes = await fetch(
-        `https://api.manychat.com/fb/subscriber/findByPhone?phone=${encodeURIComponent(waPhone)}`,
-        { headers: { Authorization: `Bearer ${process.env.MANYCHAT_API_KEY}` } }
-      );
-      const subData = await subRes.json();
-      console.log('[ManyChat] findByPhone:', JSON.stringify(subData));
-
-      if (subData.data?.id) {
-        const confirmMsg =
-          `✅ *Cita Confirmada*\n\n` +
-          `Hola ${nombre}, tu cita ha sido agendada exitosamente.\n\n` +
-          `📋 *Detalles:*\n` +
-          `• Departamento: ${deptLabel}\n` +
-          `• Médico: ${doctor}\n` +
-          `• Horario: ${slotDisplay}\n\n` +
-          `⏰ Por favor preséntate *15 minutos antes* con tu cédula de identidad.`;
-
-        const sendRes = await fetch('https://api.manychat.com/fb/sending/sendContent', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.MANYCHAT_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            subscriber_id: subData.data.id,
-            data: {
-              version: 'v2',
-              content: {
-                messages: [{ type: 'text', text: confirmMsg }],
-                actions: [],
-                quick_replies: [],
-              },
-            },
-            message_tag: 'NON_PROMOTIONAL_SUBSCRIPTION',
-          }),
-        });
-        const sendData = await sendRes.json();
-        console.log('[ManyChat] sendContent:', JSON.stringify(sendData));
-      }
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      await client.messages.create({
+        from: process.env.TWILIO_WHATSAPP_FROM,
+        to: waPhone,
+        body: confirmMsg,
+      });
     } catch (err) {
-      console.error('[ManyChat] error:', err);
+      console.error('[Twilio] error:', err);
     }
   }
 
