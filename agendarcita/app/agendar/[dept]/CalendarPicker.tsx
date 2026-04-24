@@ -4,39 +4,51 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Slot {
-  dateLabel: string;
-  dayLabel: string;
-  time: string;
-  available: boolean;
-  key: string;
+  label:       string   // display: "8:00 AM"
+  scheduledAt: string   // ISO string stored in DB
+  key:         string   // unique key for React
+  available:   boolean
 }
 
-function getSlots(): { date: string; day: string; slots: Slot[] }[] {
-  const days: { date: string; day: string; slots: Slot[] }[] = [];
-  const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-  const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  const TIMES = ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'];
+interface Day {
+  date:    string  // display: "17 Abr"
+  day:     string  // display: "Mié"
+  slots:   Slot[]
+}
 
-  const today = new Date();
+function getSlots(): Day[] {
+  const days: Day[] = [];
+  const DAYS_ES   = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  // Hours in 24h for scheduling (matching labels below)
+  const HOURS = [8, 9, 10, 11, 14, 15, 16, 17];
+  const LABELS = ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'];
+
+  const now = new Date();
   let offset = 1;
 
   while (days.length < 5) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + offset);
+    const d = new Date(now);
+    d.setDate(now.getDate() + offset);
     offset++;
     if (d.getDay() === 0 || d.getDay() === 6) continue;
 
     const dateLabel = `${d.getDate()} ${MONTHS_ES[d.getMonth()]}`;
-    const dayLabel = DAYS_ES[d.getDay()];
-    const dateNum = d.getDate();
+    const dayLabel  = DAYS_ES[d.getDay()];
+    const dateNum   = d.getDate();
 
-    const slots: Slot[] = TIMES.map((time, i) => ({
-      dateLabel,
-      dayLabel,
-      time,
-      available: (dateNum + i * 3) % 4 !== 0,
-      key: `${dateNum}-${time}`,
-    }));
+    const slots: Slot[] = HOURS.map((hour, i) => {
+      // Store as UTC equivalent of Venezuela time (UTC-4): add 4 hours to local midnight
+      const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), hour + 4, 0, 0, 0));
+      const scheduledAt = dt.toISOString()
+
+      return {
+        label:       LABELS[i],
+        scheduledAt,
+        key:         `${d.getFullYear()}-${d.getMonth()}-${dateNum}-${hour}`,
+        available:   (dateNum + i * 3) % 4 !== 0,
+      }
+    });
 
     days.push({ date: dateLabel, day: dayLabel, slots });
   }
@@ -48,27 +60,50 @@ export default function CalendarPicker({
   dept,
   cedula,
 }: {
-  dept: string;
+  dept:   string;
   cedula: string;
 }) {
   const router = useRouter();
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Slot | null>(null);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState<string | null>(null);
   const days = getSlots();
 
   async function confirm() {
     if (!selected) return;
+    setLoading(true);
+    setError(null);
+
     try {
-      await fetch('/api/send-confirmation', {
-        method: 'POST',
+      // Save to DB
+      const bookRes = await fetch('/api/book-appointment', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cedula, dept, slot: selected }),
+        body: JSON.stringify({ cedula, dept, scheduledAt: selected.scheduledAt }),
       });
+      const bookData = await bookRes.json();
+      if (!bookRes.ok) {
+        setError(bookData.error ?? 'Error al guardar la cita');
+        setLoading(false);
+        return;
+      }
+
+      // Send confirmation email (best-effort)
+      try {
+        await fetch('/api/send-confirmation', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cedula, dept, slot: `${selected.label}` }),
+        });
+      } catch (_) { /* ignore email errors */ }
+
+      router.push(
+        `/confirmado?dept=${encodeURIComponent(dept)}&cedula=${cedula}&slot=${encodeURIComponent(selected.label)}`
+      );
     } catch (_) {
-      // continue even if email fails in demo
+      setError('Error de conexión. Intenta de nuevo.');
+      setLoading(false);
     }
-    router.push(
-      `/confirmado?dept=${encodeURIComponent(dept)}&cedula=${cedula}&slot=${encodeURIComponent(selected)}`
-    );
   }
 
   return (
@@ -81,13 +116,13 @@ export default function CalendarPicker({
             </p>
             <div className="flex flex-wrap gap-2">
               {day.slots.map((slot) => {
-                const isSelected = selected === slot.key;
+                const isSelected = selected?.key === slot.key;
                 return (
                   <button
                     key={slot.key}
                     type="button"
                     disabled={!slot.available}
-                    onClick={() => setSelected(slot.key)}
+                    onClick={() => { setSelected(slot); setError(null); }}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
                     style={{
                       backgroundColor: !slot.available
@@ -104,7 +139,7 @@ export default function CalendarPicker({
                       border: isSelected ? '2px solid #1B4F8A' : '2px solid transparent',
                     }}
                   >
-                    {slot.time}
+                    {slot.label}
                   </button>
                 );
               })}
@@ -115,17 +150,23 @@ export default function CalendarPicker({
 
       {selected && (
         <div className="mt-6 bg-white rounded-2xl shadow-md p-5">
-          <p className="text-sm text-gray-600 mb-1">
-            Horario seleccionado:
-          </p>
-          <p className="font-semibold text-gray-800 mb-4">{selected.replace('-', ' · ')}</p>
+          <p className="text-sm text-gray-600 mb-1">Horario seleccionado:</p>
+          <p className="font-semibold text-gray-800 mb-4">{selected.label}</p>
+
+          {error && (
+            <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              {error}
+            </div>
+          )}
+
           <button
             type="button"
             onClick={confirm}
-            className="w-full text-white font-semibold py-3 rounded-xl transition-opacity hover:opacity-90 text-sm"
+            disabled={loading}
+            className="w-full text-white font-semibold py-3 rounded-xl transition-opacity hover:opacity-90 text-sm disabled:opacity-60"
             style={{ backgroundColor: '#2ECC71' }}
           >
-            Confirmar Cita →
+            {loading ? 'Guardando cita…' : 'Confirmar Cita →'}
           </button>
         </div>
       )}
