@@ -91,7 +91,7 @@ export async function POST(request: Request) {
   const slotDisplay = slot.replace('-', ' · ');
 
   // Send WhatsApp confirmation via ManyChat
-  if (process.env.MANYCHAT_API_KEY && process.env.MANYCHAT_FLOW_NS) {
+  if (process.env.MANYCHAT_API_KEY) {
     try {
       const digits = (email as string).replace(/\D/g, '');
       const waPhone = `+58${digits}`;
@@ -103,7 +103,16 @@ export async function POST(request: Request) {
       const subData = await subRes.json();
 
       if (subData.data?.id) {
-        await fetch('https://api.manychat.com/fb/sending/sendFlow', {
+        const confirmMsg =
+          `✅ *Cita Confirmada*\n\n` +
+          `Hola ${nombre}, tu cita ha sido agendada exitosamente.\n\n` +
+          `📋 *Detalles:*\n` +
+          `• Departamento: ${deptLabel}\n` +
+          `• Médico: ${doctor}\n` +
+          `• Horario: ${slotDisplay}\n\n` +
+          `⏰ Por favor preséntate *15 minutos antes* con tu cédula de identidad.`;
+
+        await fetch('https://api.manychat.com/fb/sending/sendContent', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${process.env.MANYCHAT_API_KEY}`,
@@ -111,7 +120,15 @@ export async function POST(request: Request) {
           },
           body: JSON.stringify({
             subscriber_id: subData.data.id,
-            flow_ns: process.env.MANYCHAT_FLOW_NS,
+            data: {
+              version: 'v2',
+              content: {
+                messages: [{ type: 'text', text: confirmMsg }],
+                actions: [],
+                quick_replies: [],
+              },
+            },
+            message_tag: 'NON_PROMOTIONAL_SUBSCRIPTION',
           }),
         });
       }
