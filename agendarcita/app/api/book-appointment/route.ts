@@ -80,7 +80,6 @@ export async function POST(request: Request) {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('DB write failed:', msg);
-      // Return the actual DB error so we can diagnose it
       return NextResponse.json({ error: 'db_failed', detail: msg }, { status: 500 });
     }
   }
@@ -94,12 +93,14 @@ export async function POST(request: Request) {
   if (process.env.MANYCHAT_API_KEY) {
     try {
       const waPhone = email as string; // already includes country code (e.g. +14121234567)
+      console.log('[ManyChat] looking up phone:', waPhone);
 
       const subRes = await fetch(
         `https://api.manychat.com/fb/subscriber/findByPhone?phone=${encodeURIComponent(waPhone)}`,
         { headers: { Authorization: `Bearer ${process.env.MANYCHAT_API_KEY}` } }
       );
       const subData = await subRes.json();
+      console.log('[ManyChat] findByPhone:', JSON.stringify(subData));
 
       if (subData.data?.id) {
         const confirmMsg =
@@ -111,7 +112,7 @@ export async function POST(request: Request) {
           `• Horario: ${slotDisplay}\n\n` +
           `⏰ Por favor preséntate *15 minutos antes* con tu cédula de identidad.`;
 
-        await fetch('https://api.manychat.com/fb/sending/sendContent', {
+        const sendRes = await fetch('https://api.manychat.com/fb/sending/sendContent', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${process.env.MANYCHAT_API_KEY}`,
@@ -130,9 +131,11 @@ export async function POST(request: Request) {
             message_tag: 'NON_PROMOTIONAL_SUBSCRIPTION',
           }),
         });
+        const sendData = await sendRes.json();
+        console.log('[ManyChat] sendContent:', JSON.stringify(sendData));
       }
-    } catch (_) {
-      // ManyChat notification failed — booking still confirmed
+    } catch (err) {
+      console.error('[ManyChat] error:', err);
     }
   }
 
@@ -156,7 +159,7 @@ export async function POST(request: Request) {
                       <span style="font-size:20px;">🏥</span>
                     </td>
                     <td style="padding-left:12px;">
-                      <p style="margin:0;color:#bfd0ef;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Hospital Domingo Luciani</p>
+                      <p style="margin:0;color:#bfd0ef;font-size:11px;text-transform:uppercase;letter-spacing:1px;">NexaEHR</p>
                       <p style="margin:0;color:#ffffff;font-size:18px;font-weight:700;">Cita Confirmada</p>
                     </td>
                   </tr></table>
@@ -197,7 +200,7 @@ export async function POST(request: Request) {
               </tr>
               <tr>
                 <td style="background:#F8FAFC;padding:16px 32px;border-top:1px solid #E5E7EB;">
-                  <p style="margin:0;font-size:11px;color:#9CA3AF;text-align:center;">Hospital Domingo Luciani · Sistema de Agendamiento de Citas</p>
+                  <p style="margin:0;font-size:11px;color:#9CA3AF;text-align:center;">NexaEHR · Sistema de Agendamiento de Citas</p>
                 </td>
               </tr>
             </table>
