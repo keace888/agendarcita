@@ -7,7 +7,7 @@ export interface Patient {
   nombre: string;
   apellido: string;
   cedula: string;
-  email: string;
+  telefono: string;
   referral?: Referral;
 }
 
@@ -40,7 +40,7 @@ export const patients: Patient[] = [
     nombre: 'José',
     apellido: 'Contreras',
     cedula: '30496453',
-    email: 'josedca2001@gmail.com',
+    telefono: '04121234567',
     referral: {
       department: 'Cardiología',
       doctor: 'Dr. Ramón Herrera',
@@ -50,13 +50,13 @@ export const patients: Patient[] = [
     nombre: 'Ana',
     apellido: 'García',
     cedula: '12345678',
-    email: 'ana.garcia@email.com',
+    telefono: '04141234567',
   },
   {
     nombre: 'Carlos',
     apellido: 'Pérez',
     cedula: '87654321',
-    email: 'carlos.perez@email.com',
+    telefono: '04161234567',
     referral: {
       department: 'Neurología',
       doctor: 'Dra. Isabel Martínez',
@@ -66,7 +66,7 @@ export const patients: Patient[] = [
     nombre: 'María',
     apellido: 'López',
     cedula: '11223344',
-    email: 'maria.lopez@email.com',
+    telefono: '04261234567',
   },
 ];
 

@@ -9,10 +9,10 @@ export default function HomePage() {
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [cedula, setCedula] = useState('');
-  const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && email.trim();
+  const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && telefono.trim();
 
   async function handleContinuar() {
     if (!canSubmit) return;
@@ -22,12 +22,12 @@ export default function HomePage() {
       await fetch('/api/send-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, cedula: normalized, email }),
+        body: JSON.stringify({ nombre, cedula: normalized, telefono }),
       });
     } catch (_) {
-      // continue even if email fails in demo
+      // continue even if message fails in demo
     }
-    router.push(`/verificando?cedula=${normalized}&email=${encodeURIComponent(email)}`);
+    router.push(`/verificando?cedula=${normalized}&telefono=${encodeURIComponent(telefono)}`);
   }
 
   return (
@@ -86,13 +86,13 @@ export default function HomePage() {
 
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                Correo Electrónico
+                Número de Teléfono (WhatsApp)
               </label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="correo@email.com"
+                type="tel"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                placeholder="0412-1234567"
                 className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition"
               />
             </div>
