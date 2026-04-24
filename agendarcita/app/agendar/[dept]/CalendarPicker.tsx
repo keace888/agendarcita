@@ -144,6 +144,14 @@ export default function CalendarPicker({
 
   return (
     <div>
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-4"
+      >
+        <span className="text-base">←</span> Volver
+      </button>
+
       <div className="space-y-4">
         {days.map((day) => (
           <div key={day.date} className="bg-white rounded-2xl shadow-sm p-5">
