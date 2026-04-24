@@ -34,6 +34,15 @@ export default function HomePage() {
   const nacimiento = dia && mes && anio ? `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}` : '';
   const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && telefono.trim() && nacimiento && sexo;
 
+  function handleTelefono(raw: string) {
+    const digits = raw.replace(/\D/g, '').slice(0, 10);
+    let formatted = digits;
+    if (digits.length > 6) formatted = `(${digits.slice(0, 3)})-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    else if (digits.length > 3) formatted = `(${digits.slice(0, 3)})-${digits.slice(3)}`;
+    else if (digits.length > 0) formatted = `(${digits}`;
+    setTelefono(formatted);
+  }
+
   function handleContinuar() {
     if (!canSubmit) return;
     const normalized = cedula.replace(/\D/g, '');
@@ -83,7 +92,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-1.5 px-3 py-2.5 border border-gray-200 border-r-0 rounded-l-lg bg-gray-50 text-sm font-medium text-gray-700 flex-shrink-0">
                   🇻🇪 +58
                 </div>
-                <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="4121234567"
+                <input type="tel" value={telefono} onChange={(e) => handleTelefono(e.target.value)} placeholder="(412)-123-4567"
                   className="flex-1 border border-gray-200 rounded-r-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
               </div>
             </div>
