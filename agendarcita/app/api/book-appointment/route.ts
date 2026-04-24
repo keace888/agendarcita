@@ -85,12 +85,42 @@ export async function POST(request: Request) {
     }
   }
 
-  // Send confirmation email
   const deptLabel = DEPT_LABELS[dept] ?? dept;
   const icon = DEPT_ICONS[dept] ?? '🏥';
   const displayName = `${nombre} ${apellido}`;
   const slotDisplay = slot.replace('-', ' · ');
 
+  // Send WhatsApp confirmation via ManyChat
+  if (process.env.MANYCHAT_API_KEY && process.env.MANYCHAT_FLOW_NS) {
+    try {
+      const digits = (email as string).replace(/\D/g, '');
+      const waPhone = `+58${digits}`;
+
+      const subRes = await fetch(
+        `https://api.manychat.com/fb/subscriber/findByPhone?phone=${encodeURIComponent(waPhone)}`,
+        { headers: { Authorization: `Bearer ${process.env.MANYCHAT_API_KEY}` } }
+      );
+      const subData = await subRes.json();
+
+      if (subData.data?.id) {
+        await fetch('https://api.manychat.com/fb/sending/sendFlow', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.MANYCHAT_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            subscriber_id: subData.data.id,
+            flow_ns: process.env.MANYCHAT_FLOW_NS,
+          }),
+        });
+      }
+    } catch (_) {
+      // ManyChat notification failed — booking still confirmed
+    }
+  }
+
+  // Send confirmation email (legacy — email field now holds phone, will fail silently)
   await resend.emails.send({
     from: 'Hospital Domingo Luciani <onboarding@resend.dev>',
     to: email,
