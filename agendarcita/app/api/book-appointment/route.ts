@@ -90,28 +90,24 @@ export async function POST(request: Request) {
   const displayName = `${nombre} ${apellido}`;
   const slotDisplay = slot.replace('-', ' · ');
 
-  // Send WhatsApp confirmation via Twilio
+  // Send WhatsApp confirmation via Twilio (fire-and-forget — never blocks the response)
   if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_WHATSAPP_FROM) {
-    try {
-      const waPhone = `whatsapp:${email}`; // email field holds full phone e.g. +14121234567
-      const confirmMsg =
-        `✅ *Cita Confirmada*\n\n` +
-        `Hola ${nombre}, tu cita ha sido agendada exitosamente.\n\n` +
-        `📋 *Detalles:*\n` +
-        `• Departamento: ${deptLabel}\n` +
-        `• Médico: ${doctor}\n` +
-        `• Horario: ${slotDisplay}\n\n` +
-        `⏰ Por favor preséntate *15 minutos antes* con tu cédula de identidad.`;
+    const waPhone = `whatsapp:${email}`;
+    const confirmMsg =
+      `✅ *Cita Confirmada*\n\n` +
+      `Hola ${nombre}, tu cita ha sido agendada exitosamente.\n\n` +
+      `📋 *Detalles:*\n` +
+      `• Departamento: ${deptLabel}\n` +
+      `• Médico: ${doctor}\n` +
+      `• Horario: ${slotDisplay}\n\n` +
+      `⏰ Por favor preséntate *15 minutos antes* con tu cédula de identidad.`;
 
-      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-      await client.messages.create({
-        from: process.env.TWILIO_WHATSAPP_FROM,
-        to: waPhone,
-        body: confirmMsg,
-      });
-    } catch (err) {
-      console.error('[Twilio] error:', err);
-    }
+    const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    twilioClient.messages.create({
+      from: process.env.TWILIO_WHATSAPP_FROM,
+      to: waPhone,
+      body: confirmMsg,
+    }).catch((err) => console.error('[Twilio] error:', err));
   }
 
   // Send confirmation email (legacy — email field now holds phone, will fail silently)
