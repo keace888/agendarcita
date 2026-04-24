@@ -25,19 +25,19 @@ export default function HomePage() {
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [cedula, setCedula] = useState('');
-  const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [dia, setDia] = useState('');
   const [mes, setMes] = useState('');
   const [anio, setAnio] = useState('');
   const [sexo, setSexo] = useState('');
 
   const nacimiento = dia && mes && anio ? `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}` : '';
-  const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && email.trim() && nacimiento && sexo;
+  const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && telefono.trim() && nacimiento && sexo;
 
   function handleContinuar() {
     if (!canSubmit) return;
     const normalized = cedula.replace(/\D/g, '');
-    const params = new URLSearchParams({ cedula: normalized, nombre, apellido, email, nacimiento, sexo });
+    const params = new URLSearchParams({ cedula: normalized, nombre, apellido, email: telefono, nacimiento, sexo });
     router.push(`/agendar?${params.toString()}`);
   }
 
@@ -78,9 +78,14 @@ export default function HomePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Correo Electrónico</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="correo@email.com"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Número de Teléfono</label>
+              <div className="flex">
+                <div className="flex items-center gap-1.5 px-3 py-2.5 border border-gray-200 border-r-0 rounded-l-lg bg-gray-50 text-sm font-medium text-gray-700 flex-shrink-0">
+                  🇻🇪 +58
+                </div>
+                <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="4121234567"
+                  className="flex-1 border border-gray-200 rounded-r-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
+              </div>
             </div>
 
             <div>
@@ -130,7 +135,7 @@ export default function HomePage() {
 
         <p className="text-center text-xs text-gray-400 mt-5 leading-relaxed">
           Sus datos están protegidos bajo confidencialidad médica y son de uso
-          exclusivo del Hospital Domingo Luciani
+          exclusivo de NexaEHR
         </p>
       </main>
     </div>
