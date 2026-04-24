@@ -147,9 +147,10 @@ export default function CalendarPicker({
       <button
         type="button"
         onClick={() => router.back()}
-        className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-4"
+        className="flex items-center gap-1.5 text-sm font-medium mb-4 px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+        style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
       >
-        <span className="text-base">←</span> Volver
+        ← Volver
       </button>
 
       <div className="space-y-4">
