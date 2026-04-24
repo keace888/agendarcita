@@ -26,6 +26,7 @@ export default function HomePage() {
   const [apellido, setApellido] = useState('');
   const [cedula, setCedula] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [countryCode, setCountryCode] = useState('+58');
   const [dia, setDia] = useState('');
   const [mes, setMes] = useState('');
   const [anio, setAnio] = useState('');
@@ -46,7 +47,8 @@ export default function HomePage() {
   function handleContinuar() {
     if (!canSubmit) return;
     const normalized = cedula.replace(/\D/g, '');
-    const params = new URLSearchParams({ cedula: normalized, nombre, apellido, email: telefono, nacimiento, sexo });
+    const digits = telefono.replace(/\D/g, '');
+    const params = new URLSearchParams({ cedula: normalized, nombre, apellido, email: `${countryCode}${digits}`, nacimiento, sexo });
     router.push(`/agendar?${params.toString()}`);
   }
 
@@ -89,9 +91,15 @@ export default function HomePage() {
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Número de Teléfono</label>
               <div className="flex">
-                <div className="flex items-center gap-1.5 px-3 py-2.5 border border-gray-200 border-r-0 rounded-l-lg bg-gray-50 text-sm font-medium text-gray-700 flex-shrink-0">
-                  🇻🇪 +58
-                </div>
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="border border-gray-200 border-r-0 rounded-l-lg px-2 py-2.5 text-sm font-medium text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:border-transparent transition flex-shrink-0"
+                >
+                  <option value="+58">🇻🇪 +58</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+57">🇨🇴 +57</option>
+                </select>
                 <input type="tel" value={telefono} onChange={(e) => handleTelefono(e.target.value)} placeholder="(412)-123-4567"
                   className="flex-1 border border-gray-200 rounded-r-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
               </div>

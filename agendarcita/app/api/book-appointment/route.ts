@@ -93,8 +93,7 @@ export async function POST(request: Request) {
   // Send WhatsApp confirmation via ManyChat
   if (process.env.MANYCHAT_API_KEY) {
     try {
-      const digits = (email as string).replace(/\D/g, '');
-      const waPhone = `+58${digits}`;
+      const waPhone = email as string; // already includes country code (e.g. +14121234567)
 
       const subRes = await fetch(
         `https://api.manychat.com/fb/subscriber/findByPhone?phone=${encodeURIComponent(waPhone)}`,
