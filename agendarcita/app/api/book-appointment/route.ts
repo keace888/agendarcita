@@ -23,7 +23,7 @@ const DEPT_ICONS: Record<string, string> = {
 };
 
 export async function POST(request: Request) {
-  const { cedula, nombre, apellido, email, nacimiento, sexo, dept, doctor, scheduledTime, slot, clinicalData } =
+  const { cedula, nombre, apellido, email, nacimiento, sexo, dept, doctor, scheduledTime, slot, clinicalData, patientExtra } =
     await request.json();
 
   // Write to DB if DATABASE_URL is configured
@@ -67,6 +67,37 @@ export async function POST(request: Request) {
          RETURNING id`,
         [patientId, dept, doctor, scheduledTime, clinicalNotes]
       );
+
+      // Attach extra demographic fields if columns exist (EHR migration may not be applied yet)
+      if (patientExtra && typeof patientExtra === 'object') {
+        try {
+          await pool.query(
+            `UPDATE agendarcita.patients SET
+               lugar_nacimiento              = COALESCE($1, lugar_nacimiento),
+               nacionalidad                  = COALESCE($2, nacionalidad),
+               ocupacion                     = COALESCE($3, ocupacion),
+               estado_civil                  = COALESCE($4, estado_civil),
+               direccion                     = COALESCE($5, direccion),
+               contacto_emergencia_nombre    = COALESCE($6, contacto_emergencia_nombre),
+               contacto_emergencia_parentesco= COALESCE($7, contacto_emergencia_parentesco),
+               contacto_emergencia_direccion = COALESCE($8, contacto_emergencia_direccion)
+             WHERE id = $9`,
+            [
+              patientExtra.lugar_nacimiento || null,
+              patientExtra.nacionalidad || null,
+              patientExtra.ocupacion || null,
+              patientExtra.estado_civil || null,
+              patientExtra.direccion || null,
+              patientExtra.contacto_emergencia_nombre || null,
+              patientExtra.contacto_emergencia_parentesco || null,
+              patientExtra.contacto_emergencia_direccion || null,
+              patientId,
+            ]
+          );
+        } catch (_) {
+          // columns not yet migrated — core patient record already saved
+        }
+      }
 
       // Attach qr_token if column exists (EHR migration may not be applied yet)
       try {

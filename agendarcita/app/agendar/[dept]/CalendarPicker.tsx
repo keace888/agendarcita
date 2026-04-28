@@ -100,6 +100,7 @@ export default function CalendarPicker({
     setLoading(true);
 
     const clinicalData = JSON.parse(sessionStorage.getItem(`intake_${dept}`) ?? '{}');
+    const patientExtra = JSON.parse(sessionStorage.getItem('patient_extra') ?? '{}');
 
     try {
       const res = await fetch('/api/book-appointment', {
@@ -112,6 +113,7 @@ export default function CalendarPicker({
           scheduledTime: selected.isoDate,
           slot: selected.key,
           clinicalData,
+          patientExtra,
         }),
       });
 

@@ -17,20 +17,48 @@ function daysInMonth(month: number, year: number) {
   return new Date(year, month, 0).getDate();
 }
 
+const inputClass =
+  'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition';
+
 const selectClass =
   'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:border-transparent transition';
 
+function Section({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3 pt-2">
+      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">{title}</span>
+      <div className="flex-1 h-px bg-gray-100" />
+    </div>
+  );
+}
+
 export default function HomePage() {
   const router = useRouter();
+
+  // Core identity
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [cedula, setCedula] = useState('');
   const [telefono, setTelefono] = useState('');
   const [countryCode, setCountryCode] = useState('+58');
+  const [sexo, setSexo] = useState('');
+
+  // Nacimiento
   const [dia, setDia] = useState('');
   const [mes, setMes] = useState('');
   const [anio, setAnio] = useState('');
-  const [sexo, setSexo] = useState('');
+  const [lugarNacimiento, setLugarNacimiento] = useState('');
+  const [nacionalidad, setNacionalidad] = useState('');
+  const [ocupacion, setOcupacion] = useState('');
+
+  // Estado civil & dirección
+  const [estadoCivil, setEstadoCivil] = useState('');
+  const [direccion, setDireccion] = useState('');
+
+  // Contacto de emergencia
+  const [ceNombre, setCeNombre] = useState('');
+  const [ceParentesco, setCeParentesco] = useState('');
+  const [ceDireccion, setCeDireccion] = useState('');
 
   const nacimiento = dia && mes && anio ? `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}` : '';
   const canSubmit = nombre.trim() && apellido.trim() && cedula.trim() && telefono.trim() && nacimiento && sexo;
@@ -48,7 +76,27 @@ export default function HomePage() {
     if (!canSubmit) return;
     const normalized = cedula.replace(/\D/g, '');
     const digits = telefono.replace(/\D/g, '');
-    const params = new URLSearchParams({ cedula: normalized, nombre, apellido, email: `${countryCode}${digits}`, nacimiento, sexo });
+
+    // Save extra demographic fields to sessionStorage
+    sessionStorage.setItem('patient_extra', JSON.stringify({
+      lugar_nacimiento: lugarNacimiento,
+      nacionalidad,
+      ocupacion,
+      estado_civil: estadoCivil,
+      direccion,
+      contacto_emergencia_nombre: ceNombre,
+      contacto_emergencia_parentesco: ceParentesco,
+      contacto_emergencia_direccion: ceDireccion,
+    }));
+
+    const params = new URLSearchParams({
+      cedula: normalized,
+      nombre,
+      apellido,
+      email: `${countryCode}${digits}`,
+      nacimiento,
+      sexo,
+    });
     router.push(`/agendar?${params.toString()}`);
   }
 
@@ -69,23 +117,25 @@ export default function HomePage() {
           </p>
 
           <div className="space-y-4">
+
+            {/* ── Datos personales ── */}
+            <Section title="Datos Personales" />
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Nombre</label>
-                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="José"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
+                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="José" className={inputClass} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Apellido</label>
-                <input type="text" value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Contreras"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
+                <input type="text" value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Contreras" className={inputClass} />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Número de Cédula</label>
-              <input type="text" value={cedula} onChange={(e) => setCedula(e.target.value)} placeholder="30.496.453"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition" />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Cédula / Pasaporte</label>
+              <input type="text" value={cedula} onChange={(e) => setCedula(e.target.value)} placeholder="30.496.453" className={inputClass} />
+              <p className="text-xs text-gray-400 mt-1">Cédula si eres venezolano, número de pasaporte si eres extranjero</p>
             </div>
 
             <div>
@@ -105,37 +155,89 @@ export default function HomePage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Sexo</label>
+                <select value={sexo} onChange={(e) => setSexo(e.target.value)} className={selectClass}>
+                  <option value="">—</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Femenino</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Estado Civil</label>
+                <select value={estadoCivil} onChange={(e) => setEstadoCivil(e.target.value)} className={selectClass}>
+                  <option value="">—</option>
+                  <option value="soltero">Soltero/a</option>
+                  <option value="casado">Casado/a</option>
+                  <option value="divorciado">Divorciado/a</option>
+                  <option value="viudo">Viudo/a</option>
+                  <option value="union_libre">Unión libre</option>
+                </select>
+              </div>
+            </div>
+
+            {/* ── Nacimiento ── */}
+            <Section title="Nacimiento" />
+
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Fecha de Nacimiento</label>
               <div className="grid grid-cols-3 gap-2">
                 <select value={dia} onChange={(e) => setDia(e.target.value)} className={selectClass}>
                   <option value="">Día</option>
-                  {days.map((d) => (
-                    <option key={d} value={String(d)}>{d}</option>
-                  ))}
+                  {days.map((d) => <option key={d} value={String(d)}>{d}</option>)}
                 </select>
                 <select value={mes} onChange={(e) => setMes(e.target.value)} className={selectClass}>
                   <option value="">Mes</option>
-                  {MESES.map((m, i) => (
-                    <option key={m} value={String(i + 1)}>{m}</option>
-                  ))}
+                  {MESES.map((m, i) => <option key={m} value={String(i + 1)}>{m}</option>)}
                 </select>
                 <select value={anio} onChange={(e) => setAnio(e.target.value)} className={selectClass}>
                   <option value="">Año</option>
-                  {YEARS.map((y) => (
-                    <option key={y} value={String(y)}>{y}</option>
-                  ))}
+                  {YEARS.map((y) => <option key={y} value={String(y)}>{y}</option>)}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Sexo</label>
-              <select value={sexo} onChange={(e) => setSexo(e.target.value)} className={selectClass}>
-                <option value="">—</option>
-                <option value="M">Masculino</option>
-                <option value="F">Femenino</option>
-              </select>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Lugar de Nacimiento</label>
+              <input type="text" value={lugarNacimiento} onChange={(e) => setLugarNacimiento(e.target.value)} placeholder="Caracas, Venezuela" className={inputClass} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Nacionalidad</label>
+                <input type="text" value={nacionalidad} onChange={(e) => setNacionalidad(e.target.value)} placeholder="Venezolano/a" className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Ocupación</label>
+                <input type="text" value={ocupacion} onChange={(e) => setOcupacion(e.target.value)} placeholder="Ingeniero" className={inputClass} />
+              </div>
+            </div>
+
+            {/* ── Dirección ── */}
+            <Section title="Dirección" />
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Dirección de Residencia</label>
+              <input type="text" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Av. Libertador, Edif. Centro, Piso 3, Caracas" className={inputClass} />
+            </div>
+
+            {/* ── Contacto de emergencia ── */}
+            <Section title="Contacto de Emergencia" />
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Nombre</label>
+              <input type="text" value={ceNombre} onChange={(e) => setCeNombre(e.target.value)} placeholder="María Contreras" className={inputClass} />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Parentesco</label>
+              <input type="text" value={ceParentesco} onChange={(e) => setCeParentesco(e.target.value)} placeholder="Madre" className={inputClass} />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Dirección</label>
+              <input type="text" value={ceDireccion} onChange={(e) => setCeDireccion(e.target.value)} placeholder="Av. Libertador, Caracas" className={inputClass} />
             </div>
 
             <button
