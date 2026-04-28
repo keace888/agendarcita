@@ -153,14 +153,24 @@ export default function IntakeForm({
             </div>
           ))}
 
-          <button
-            type="button"
-            onClick={handleContinuar}
-            className="w-full text-white font-semibold py-3 rounded-xl mt-2 transition-opacity hover:opacity-90 text-sm tracking-wide"
-            style={{ backgroundColor: '#1B4F8A' }}
-          >
-            Continuar a Horarios →
-          </button>
+          <div className="flex gap-3 mt-2">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-5 py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
+              style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
+            >
+              ← Volver
+            </button>
+            <button
+              type="button"
+              onClick={handleContinuar}
+              className="flex-1 text-white font-semibold py-3 rounded-xl transition-opacity hover:opacity-90 text-sm tracking-wide"
+              style={{ backgroundColor: '#1B4F8A' }}
+            >
+              Continuar a Horarios →
+            </button>
+          </div>
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-5">
