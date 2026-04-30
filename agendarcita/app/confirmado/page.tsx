@@ -1,13 +1,10 @@
-import Link from 'next/link';
-import Header from '../components/Header';
+'use client';
 
-const DEPT_LABELS: Record<string, string> = {
-  oftalmologia: 'Oftalmología',
-  traumatologia: 'Traumatología',
-  oncologia: 'Oncología',
-  estetica: 'Medicina Estética',
-  medicina_general: 'Medicina General',
-};
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import Header from '../components/Header';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const DEPT_ICONS: Record<string, string> = {
   oftalmologia: '👁️',
@@ -17,13 +14,17 @@ const DEPT_ICONS: Record<string, string> = {
   medicina_general: '⚕️',
 };
 
-export default async function ConfirmadoPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ dept?: string; nombre?: string; slot?: string }>;
-}) {
-  const { dept = '', nombre = 'Paciente', slot = '' } = await searchParams;
-  const deptLabel = DEPT_LABELS[dept] ?? dept;
+function ConfirmadoContent() {
+  const params = useSearchParams();
+  const { T } = useLanguage();
+  const c = T.confirmado;
+
+  const dept = params.get('dept') ?? '';
+  const nombre = params.get('nombre') ?? 'Paciente';
+  const slot = params.get('slot') ?? '';
+
+  const deptInfo = T.depts[dept as keyof typeof T.depts] as { label: string } | undefined;
+  const deptLabel = deptInfo?.label ?? dept;
   const icon = DEPT_ICONS[dept] ?? '🏥';
 
   return (
@@ -41,43 +42,48 @@ export default async function ConfirmadoPage({
             </svg>
           </div>
 
-          <h2 className="text-xl font-bold text-gray-800 mb-1">¡Cita Confirmada!</h2>
-          <p className="text-sm text-gray-400 mb-6">Tu cita ha sido agendada exitosamente</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-1">{c.title}</h2>
+          <p className="text-sm text-gray-400 mb-6">{c.subtitle}</p>
 
           <div
             className="rounded-2xl p-5 text-left space-y-3 mb-6"
             style={{ backgroundColor: '#F8FAFC', border: '1px solid #e5e7eb' }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Paciente</span>
+              <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">{c.patient}</span>
               <span className="text-sm font-semibold text-gray-700">{nombre}</span>
             </div>
             <div className="border-t border-gray-100" />
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Departamento</span>
+              <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">{c.department}</span>
               <span className="text-sm font-semibold text-gray-700">{icon} {deptLabel}</span>
             </div>
             <div className="border-t border-gray-100" />
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Horario</span>
+              <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">{c.schedule}</span>
               <span className="text-sm font-semibold text-gray-700">{slot.replace('-', ' · ')}</span>
             </div>
           </div>
 
-          <p className="text-xs text-gray-400 mb-6 leading-relaxed">
-            Recibirás una confirmación en tu correo electrónico con los detalles de tu cita.
-            Por favor preséntate 15 minutos antes de tu cita.
-          </p>
+          <p className="text-xs text-gray-400 mb-6 leading-relaxed">{c.note}</p>
 
           <Link
             href="/"
             className="inline-block text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#1B4F8A' }}
           >
-            Agendar Otra Cita
+            {c.another}
           </Link>
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ConfirmadoPage() {
+  return (
+    <Suspense>
+      <ConfirmadoContent />
+    </Suspense>
   );
 }

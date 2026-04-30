@@ -3,11 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from './components/Header';
-
-const MESES = [
-  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre',
-];
+import { useLanguage } from './i18n/LanguageContext';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1919 }, (_, i) => CURRENT_YEAR - i);
@@ -19,7 +15,6 @@ function daysInMonth(month: number, year: number) {
 
 const inputClass =
   'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition';
-
 const selectClass =
   'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:border-transparent transition';
 
@@ -34,28 +29,23 @@ function Section({ title }: { title: string }) {
 
 export default function HomePage() {
   const router = useRouter();
+  const { T } = useLanguage();
+  const h = T.home;
 
-  // Core identity
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [cedula, setCedula] = useState('');
   const [telefono, setTelefono] = useState('');
   const [countryCode, setCountryCode] = useState('+58');
   const [sexo, setSexo] = useState('');
-
-  // Nacimiento
   const [dia, setDia] = useState('');
   const [mes, setMes] = useState('');
   const [anio, setAnio] = useState('');
   const [lugarNacimiento, setLugarNacimiento] = useState('');
   const [nacionalidad, setNacionalidad] = useState('');
   const [ocupacion, setOcupacion] = useState('');
-
-  // Estado civil & dirección
   const [estadoCivil, setEstadoCivil] = useState('');
   const [direccion, setDireccion] = useState('');
-
-  // Contacto de emergencia
   const [ceNombre, setCeNombre] = useState('');
   const [ceParentesco, setCeParentesco] = useState('');
   const [ceDireccion, setCeDireccion] = useState('');
@@ -76,8 +66,6 @@ export default function HomePage() {
     if (!canSubmit) return;
     const normalized = cedula.replace(/\D/g, '');
     const digits = telefono.replace(/\D/g, '');
-
-    // Save extra demographic fields to sessionStorage
     sessionStorage.setItem('patient_extra', JSON.stringify({
       lugar_nacimiento: lugarNacimiento,
       nacionalidad,
@@ -88,15 +76,7 @@ export default function HomePage() {
       contacto_emergencia_parentesco: ceParentesco,
       contacto_emergencia_direccion: ceDireccion,
     }));
-
-    const params = new URLSearchParams({
-      cedula: normalized,
-      nombre,
-      apellido,
-      email: `${countryCode}${digits}`,
-      nacimiento,
-      sexo,
-    });
+    const params = new URLSearchParams({ cedula: normalized, nombre, apellido, email: `${countryCode}${digits}`, nacimiento, sexo });
     router.push(`/agendar?${params.toString()}`);
   }
 
@@ -106,46 +86,36 @@ export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8FAFC' }}>
       <Header />
-
       <main className="max-w-md mx-auto px-4 py-10">
         <div className="bg-white rounded-2xl shadow-md p-8">
-          <h2 className="text-lg font-semibold mb-1" style={{ color: '#1A202C' }}>
-            Identificación del Paciente
-          </h2>
-          <p className="text-sm text-gray-400 mb-6">
-            Ingrese sus datos para continuar con el agendamiento
-          </p>
+          <h2 className="text-lg font-semibold mb-1" style={{ color: '#1A202C' }}>{h.title}</h2>
+          <p className="text-sm text-gray-400 mb-6">{h.subtitle}</p>
 
           <div className="space-y-4">
-
-            {/* ── Datos personales ── */}
-            <Section title="Datos Personales" />
+            <Section title={h.sections.personal} />
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Nombre</label>
-                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="José" className={inputClass} />
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.nombre}</label>
+                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={h.placeholders.nombre} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Apellido</label>
-                <input type="text" value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Contreras" className={inputClass} />
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.apellido}</label>
+                <input type="text" value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder={h.placeholders.apellido} className={inputClass} />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Cédula / Pasaporte</label>
-              <input type="text" value={cedula} onChange={(e) => setCedula(e.target.value)} placeholder="30.496.453" className={inputClass} />
-              <p className="text-xs text-gray-400 mt-1">Cédula si eres venezolano, número de pasaporte si eres extranjero</p>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.cedula}</label>
+              <input type="text" value={cedula} onChange={(e) => setCedula(e.target.value)} placeholder={h.placeholders.cedula} className={inputClass} />
+              <p className="text-xs text-gray-400 mt-1">{h.fields.cedulaHint}</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Número de Teléfono</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.telefono}</label>
               <div className="flex">
-                <select
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="border border-gray-200 border-r-0 rounded-l-lg px-2 py-2.5 text-sm font-medium text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:border-transparent transition flex-shrink-0"
-                >
+                <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
+                  className="border border-gray-200 border-r-0 rounded-l-lg px-2 py-2.5 text-sm font-medium text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:border-transparent transition flex-shrink-0">
                   <option value="+58">🇻🇪 +58</option>
                   <option value="+1">🇺🇸 +1</option>
                   <option value="+57">🇨🇴 +57</option>
@@ -157,105 +127,92 @@ export default function HomePage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Sexo</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.sexo}</label>
                 <select value={sexo} onChange={(e) => setSexo(e.target.value)} className={selectClass}>
-                  <option value="">—</option>
-                  <option value="M">Masculino</option>
-                  <option value="F">Femenino</option>
+                  <option value="">{h.sexoOptions.placeholder}</option>
+                  <option value="M">{h.sexoOptions.M}</option>
+                  <option value="F">{h.sexoOptions.F}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Estado Civil</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.estadoCivil}</label>
                 <select value={estadoCivil} onChange={(e) => setEstadoCivil(e.target.value)} className={selectClass}>
-                  <option value="">—</option>
-                  <option value="soltero">Soltero/a</option>
-                  <option value="casado">Casado/a</option>
-                  <option value="divorciado">Divorciado/a</option>
-                  <option value="viudo">Viudo/a</option>
-                  <option value="union_libre">Unión libre</option>
+                  <option value="">{h.estadoCivilOptions.placeholder}</option>
+                  <option value="soltero">{h.estadoCivilOptions.soltero}</option>
+                  <option value="casado">{h.estadoCivilOptions.casado}</option>
+                  <option value="divorciado">{h.estadoCivilOptions.divorciado}</option>
+                  <option value="viudo">{h.estadoCivilOptions.viudo}</option>
+                  <option value="union_libre">{h.estadoCivilOptions.union_libre}</option>
                 </select>
               </div>
             </div>
 
-            {/* ── Nacimiento ── */}
-            <Section title="Nacimiento" />
+            <Section title={h.sections.nacimiento} />
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Fecha de Nacimiento</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.fechaNacimiento}</label>
               <div className="grid grid-cols-3 gap-2">
                 <select value={dia} onChange={(e) => setDia(e.target.value)} className={selectClass}>
-                  <option value="">Día</option>
+                  <option value="">{h.date.day}</option>
                   {days.map((d) => <option key={d} value={String(d)}>{d}</option>)}
                 </select>
                 <select value={mes} onChange={(e) => setMes(e.target.value)} className={selectClass}>
-                  <option value="">Mes</option>
-                  {MESES.map((m, i) => <option key={m} value={String(i + 1)}>{m}</option>)}
+                  <option value="">{h.date.month}</option>
+                  {h.months.map((m, i) => <option key={m} value={String(i + 1)}>{m}</option>)}
                 </select>
                 <select value={anio} onChange={(e) => setAnio(e.target.value)} className={selectClass}>
-                  <option value="">Año</option>
+                  <option value="">{h.date.year}</option>
                   {YEARS.map((y) => <option key={y} value={String(y)}>{y}</option>)}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Lugar de Nacimiento</label>
-              <input type="text" value={lugarNacimiento} onChange={(e) => setLugarNacimiento(e.target.value)} placeholder="Caracas, Venezuela" className={inputClass} />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.lugarNacimiento}</label>
+              <input type="text" value={lugarNacimiento} onChange={(e) => setLugarNacimiento(e.target.value)} placeholder={h.placeholders.lugarNacimiento} className={inputClass} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Nacionalidad</label>
-                <input type="text" value={nacionalidad} onChange={(e) => setNacionalidad(e.target.value)} placeholder="Venezolano/a" className={inputClass} />
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.nacionalidad}</label>
+                <input type="text" value={nacionalidad} onChange={(e) => setNacionalidad(e.target.value)} placeholder={h.placeholders.nacionalidad} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Ocupación</label>
-                <input type="text" value={ocupacion} onChange={(e) => setOcupacion(e.target.value)} placeholder="Ingeniero" className={inputClass} />
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.ocupacion}</label>
+                <input type="text" value={ocupacion} onChange={(e) => setOcupacion(e.target.value)} placeholder={h.placeholders.ocupacion} className={inputClass} />
               </div>
             </div>
 
-            {/* ── Dirección ── */}
-            <Section title="Dirección" />
+            <Section title={h.sections.direccion} />
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Dirección de Residencia</label>
-              <input type="text" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Av. Libertador, Edif. Centro, Piso 3, Caracas" className={inputClass} />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.direccion}</label>
+              <input type="text" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder={h.placeholders.direccion} className={inputClass} />
             </div>
 
-            {/* ── Contacto de emergencia ── */}
-            <Section title="Contacto de Emergencia" />
+            <Section title={h.sections.emergencia} />
 
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Nombre</label>
-              <input type="text" value={ceNombre} onChange={(e) => setCeNombre(e.target.value)} placeholder="María Contreras" className={inputClass} />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.ceNombre}</label>
+              <input type="text" value={ceNombre} onChange={(e) => setCeNombre(e.target.value)} placeholder={h.placeholders.ceNombre} className={inputClass} />
             </div>
-
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Parentesco</label>
-              <input type="text" value={ceParentesco} onChange={(e) => setCeParentesco(e.target.value)} placeholder="Madre" className={inputClass} />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.ceParentesco}</label>
+              <input type="text" value={ceParentesco} onChange={(e) => setCeParentesco(e.target.value)} placeholder={h.placeholders.ceParentesco} className={inputClass} />
             </div>
-
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Dirección</label>
-              <input type="text" value={ceDireccion} onChange={(e) => setCeDireccion(e.target.value)} placeholder="Av. Libertador, Caracas" className={inputClass} />
+              <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{h.fields.ceDireccion}</label>
+              <input type="text" value={ceDireccion} onChange={(e) => setCeDireccion(e.target.value)} placeholder={h.placeholders.ceDireccion} className={inputClass} />
             </div>
 
-            <button
-              type="button"
-              onClick={handleContinuar}
-              disabled={!canSubmit}
+            <button type="button" onClick={handleContinuar} disabled={!canSubmit}
               className="w-full text-white font-semibold py-3 rounded-xl mt-2 transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-sm tracking-wide"
-              style={{ backgroundColor: '#1B4F8A' }}
-            >
-              Continuar →
+              style={{ backgroundColor: '#1B4F8A' }}>
+              {h.submit}
             </button>
           </div>
         </div>
-
-        <p className="text-center text-xs text-gray-400 mt-5 leading-relaxed">
-          Sus datos están protegidos bajo confidencialidad médica y son de uso
-          exclusivo de NexaEHR
-        </p>
+        <p className="text-center text-xs text-gray-400 mt-5 leading-relaxed">{h.footer}</p>
       </main>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface Slot {
   dateLabel: string;
@@ -12,8 +13,14 @@ interface Slot {
   isoDate: string;
 }
 
-const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const DAYS = {
+  es: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+};
+const MONTHS = {
+  es: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+};
 const TIMES = [
   { label: '8:00 AM', hour: 8 },
   { label: '9:00 AM', hour: 9 },
@@ -25,7 +32,7 @@ const TIMES = [
   { label: '5:00 PM', hour: 17 },
 ];
 
-function getSlots(): { date: string; day: string; slots: Slot[] }[] {
+function getSlots(lang: 'es' | 'en'): { date: string; day: string; slots: Slot[] }[] {
   const days: { date: string; day: string; slots: Slot[] }[] = [];
   const today = new Date();
   let offset = 1;
@@ -36,12 +43,11 @@ function getSlots(): { date: string; day: string; slots: Slot[] }[] {
     offset++;
     if (d.getDay() === 0 || d.getDay() === 6) continue;
 
-    const dateLabel = `${d.getDate()} ${MONTHS_ES[d.getMonth()]}`;
-    const dayLabel = DAYS_ES[d.getDay()];
+    const dateLabel = `${d.getDate()} ${MONTHS[lang][d.getMonth()]}`;
+    const dayLabel = DAYS[lang][d.getDay()];
     const dateNum = d.getDate();
 
     const slots: Slot[] = TIMES.map((t, i) => {
-      // Build timestamp in Venezuela time (UTC-4) regardless of client timezone
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, '0');
       const dd = String(d.getDate()).padStart(2, '0');
@@ -71,6 +77,14 @@ const DOCTORS: Record<string, string> = {
   medicina_general: 'Dr. Médico de Guardia',
 };
 
+const DEPT_ICONS: Record<string, string> = {
+  oftalmologia: '👁️',
+  traumatologia: '🦴',
+  oncologia: '🩺',
+  estetica: '✨',
+  medicina_general: '⚕️',
+};
+
 export default function CalendarPicker({
   dept,
   cedula,
@@ -89,11 +103,15 @@ export default function CalendarPicker({
   sexo: string;
 }) {
   const router = useRouter();
+  const { lang, T } = useLanguage();
   const [selected, setSelected] = useState<Slot | null>(null);
   const [loading, setLoading] = useState(false);
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [dbError, setDbError] = useState<string | null>(null);
-  const days = getSlots();
+  const days = getSlots(lang);
+
+  const deptInfo = T.depts[dept as keyof typeof T.depts] as { label: string } | undefined;
+  const deptLabel = deptInfo?.label ?? dept;
 
   async function confirm() {
     if (!selected || loading) return;
@@ -136,9 +154,9 @@ export default function CalendarPicker({
     }
 
     try {
-    router.push(
-      `/confirmado?dept=${encodeURIComponent(dept)}&nombre=${encodeURIComponent(nombre)}&slot=${encodeURIComponent(selected.key)}`
-    );
+      router.push(
+        `/confirmado?dept=${encodeURIComponent(dept)}&nombre=${encodeURIComponent(nombre)}&slot=${encodeURIComponent(selected.key)}`
+      );
     } catch (_) {
       setLoading(false);
     }
@@ -146,14 +164,20 @@ export default function CalendarPicker({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => router.back()}
-        className="flex items-center gap-1.5 text-sm font-medium mb-4 px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-        style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
-      >
-        ← Volver
-      </button>
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="flex items-center gap-1.5 text-sm font-medium mb-4 px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+          style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
+        >
+          {T.back}
+        </button>
+        <h2 className="text-lg font-semibold text-gray-800">
+          {DEPT_ICONS[dept] ?? '🏥'} {deptLabel}
+        </h2>
+        <p className="text-xs text-gray-400">{T.calendar.subtitle}</p>
+      </div>
 
       <div className="space-y-4">
         {days.map((day) => (
@@ -190,14 +214,14 @@ export default function CalendarPicker({
 
       {dbError && (
         <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
-          <p className="text-xs font-semibold text-red-600 mb-1">Error al guardar cita:</p>
+          <p className="text-xs font-semibold text-red-600 mb-1">{T.calendar.errorTitle}</p>
           <p className="text-xs text-red-500 font-mono break-all">{dbError}</p>
         </div>
       )}
 
       {selected && (
         <div className="mt-6 bg-white rounded-2xl shadow-md p-5">
-          <p className="text-sm text-gray-600 mb-1">Horario seleccionado:</p>
+          <p className="text-sm text-gray-600 mb-1">{T.calendar.selected}</p>
           <p className="font-semibold text-gray-800 mb-4">
             {selected.dateLabel} · {selected.time}
           </p>
@@ -208,7 +232,7 @@ export default function CalendarPicker({
             className="w-full text-white font-semibold py-3 rounded-xl transition-opacity hover:opacity-90 disabled:opacity-50 text-sm"
             style={{ backgroundColor: '#2ECC71' }}
           >
-            {loading ? 'Confirmando...' : 'Confirmar Cita →'}
+            {loading ? T.calendar.confirming : T.calendar.confirm}
           </button>
         </div>
       )}

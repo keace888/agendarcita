@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 type FieldType = 'text' | 'textarea' | 'select';
 
@@ -77,6 +78,7 @@ export default function IntakeForm({
   queryString: string;
 }) {
   const router = useRouter();
+  const { T } = useLanguage();
   const fields = DEPT_CONFIG[dept] ?? [];
   const [values, setValues] = useState<Record<string, string>>({});
 
@@ -89,18 +91,8 @@ export default function IntakeForm({
     router.push(`/agendar/${dept}/calendario?${queryString}`);
   }
 
-  const deptLabel =
-    dept === 'oftalmologia'
-      ? 'Oftalmología'
-      : dept === 'traumatologia'
-      ? 'Traumatología'
-      : dept === 'oncologia'
-      ? 'Oncología'
-      : dept === 'estetica'
-      ? 'Medicina Estética'
-      : dept === 'medicina_general'
-      ? 'Medicina General'
-      : dept;
+  const deptInfo = T.depts[dept as keyof typeof T.depts] as { label: string } | undefined;
+  const deptLabel = deptInfo?.label ?? dept;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8FAFC' }}>
@@ -109,9 +101,7 @@ export default function IntakeForm({
           <h2 className="text-lg font-semibold text-gray-800 mb-1">
             Datos Clínicos — {deptLabel}
           </h2>
-          <p className="text-sm text-gray-400">
-            Complete la información antes de su cita. El médico la revisará al recibirle.
-          </p>
+          <p className="text-sm text-gray-400">{T.intake.subtitle}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
@@ -134,7 +124,7 @@ export default function IntakeForm({
                   onChange={(e) => set(field.key, e.target.value)}
                   className={inputClass}
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="">—</option>
                   {field.options?.map((opt) => (
                     <option key={opt} value={opt}>
                       {opt}
@@ -160,7 +150,7 @@ export default function IntakeForm({
               className="px-5 py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
               style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
             >
-              ← Volver
+              {T.back}
             </button>
             <button
               type="button"
@@ -168,14 +158,12 @@ export default function IntakeForm({
               className="flex-1 text-white font-semibold py-3 rounded-xl transition-opacity hover:opacity-90 text-sm tracking-wide"
               style={{ backgroundColor: '#1B4F8A' }}
             >
-              Continuar a Horarios →
+              {T.intake.continuar}
             </button>
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-5">
-          Todos los campos son opcionales — puede completarlos en consulta si lo prefiere.
-        </p>
+        <p className="text-center text-xs text-gray-400 mt-5">{T.intake.footer}</p>
       </main>
     </div>
   );
